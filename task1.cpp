@@ -2,6 +2,7 @@
 #include <vector>
 #include <cmath>
 #include <iomanip>
+#include <limits>
 
 using namespace std;
 
@@ -23,6 +24,10 @@ private:
     void pivot(int pivotRow, int pivotCol);
     int selectPivotColumn();
     int selectPivotRow(int pivotCol);
+    
+    bool checkInfeasibility();
+    bool checkUnboundedness();
+    bool isDegenerate();
 };
 
 Simplex::Simplex(const vector<vector<double> >& A, const vector<double>& b, const vector<double>& C, bool maximize, double epsilon) {
@@ -48,6 +53,25 @@ Simplex::Simplex(const vector<vector<double> >& A, const vector<double>& b, cons
     }
 }
 
+bool Simplex::checkInfeasibility() {
+    for (int i = 0; i < numRows; ++i) {
+        if (tableau[i][numCols + numRows] < -epsilon) {
+            bool allNonPositive = true;
+            for (int j = 0; j < numCols; ++j) {
+                if (tableau[i][j] > epsilon) {
+                    allNonPositive = false;
+                    break;
+                }
+            }
+            if (allNonPositive) {
+                cout << "The problem is infeasible!" << endl;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 bool Simplex::checkOptimality() {
     for (int j = 0; j < numCols + numRows; ++j) {
         if (tableau[numRows][j] < -epsilon) {
@@ -55,6 +79,16 @@ bool Simplex::checkOptimality() {
         }
     }
     return true;
+}
+
+bool Simplex::isDegenerate() {
+    for (int i = 0; i < numRows; ++i) {
+        if (fabs(tableau[i][numCols + numRows]) < epsilon) {
+            cout << "Degeneracy detected!" << endl;
+            return true;
+        }
+    }
+    return false;
 }
 
 void Simplex::pivot(int pivotRow, int pivotCol) {
@@ -88,7 +122,7 @@ int Simplex::selectPivotColumn() {
 
 int Simplex::selectPivotRow(int pivotCol) {
     int pivotRow = -1;
-    double minRatio = 1e9;
+    double minRatio = numeric_limits<double>::max();
 
     for (int i = 0; i < numRows; ++i) {
         if (tableau[i][pivotCol] > epsilon) {
@@ -104,10 +138,18 @@ int Simplex::selectPivotRow(int pivotCol) {
 }
 
 bool Simplex::solve() {
+    if (checkInfeasibility()) {
+        return false;
+    }
+    
     while (!checkOptimality()) {
+        if (isDegenerate()) {
+            cout << "Warning: Degenerate solution!" << endl;
+        }
+        
         int pivotCol = selectPivotColumn();
         int pivotRow = selectPivotRow(pivotCol);
-                if (pivotRow == -1) {
+        if (pivotRow == -1) {
             cout << "The method is not applicable (unbounded solution)!" << endl;
             return false;
         }
