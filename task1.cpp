@@ -9,6 +9,7 @@ using namespace std;
 class Simplex {
 public:
     Simplex(const vector<vector<double> >& A, const vector<double>& b, const vector<double>& C, bool maximize, double epsilon);
+    void printProblem();
     bool solve();
     void printSolution();
 
@@ -137,6 +138,24 @@ int Simplex::selectPivotRow(int pivotCol) {
     return pivotRow;
 }
 
+void Simplex::printProblem() {
+    cout << "\nProblem:\n";
+    cout << (maximize ? "max" : "min") << " z = ";
+    for (int k = 0; k < numCols; k++) {
+        cout << (maximize ? -1 * tableau.at(tableau.size() - 1).at(k) : tableau.at(tableau.size() - 1).at(k)) << "*x_" << k + 1;
+        (k != numCols - 1 ? cout << " + " : cout << "");
+    }
+    cout << "\nsubject to the constraints:\n";
+    for (int j = 0; j < numRows; j++) {
+        for (int i = 0; i < numCols; i++) {
+            cout << tableau.at(j).at(i) << "*x_" << i + 1;
+            (i != numRows - 1 ? cout << " + " : cout << " <= " << tableau.at(j).at(tableau.at(j).size() - 1));
+        }
+        cout << "\n";
+    }
+    cout << "\n";
+}
+
 bool Simplex::solve() {
     if (checkInfeasibility()) {
         return false;
@@ -176,7 +195,7 @@ void Simplex::printSolution() {
         cout << "x_" << j + 1 << " = " << solution[j] << endl;
     }
 
-    cout << "Optimal value: " << (maximize ? 1 : -1) * tableau[numRows][numCols + numRows] << endl;
+    cout << (maximize ? "Maximum" : "Minimum") << " value: " << (maximize ? 1 : -1) * tableau[numRows][numCols + numRows] << endl;
 }
 
 int main() {
@@ -218,6 +237,7 @@ int main() {
     cin >> epsilon;
 
     Simplex simplex(A, b, C, maximize, epsilon);
+    simplex.printProblem();
     if (simplex.solve()) {
         simplex.printSolution();
     }
