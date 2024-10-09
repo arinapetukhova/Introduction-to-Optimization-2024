@@ -149,7 +149,7 @@ void Simplex::printProblem() {
     for (int j = 0; j < numRows; j++) {
         for (int i = 0; i < numCols; i++) {
             cout << tableau.at(j).at(i) << "*x_" << i + 1;
-            (i != numRows - 1 ? cout << " + " : cout << " <= " << tableau.at(j).at(tableau.at(j).size() - 1));
+            (i != numCols - 1 ? cout << " + " : cout << " <= " << tableau.at(j).at(tableau.at(j).size() - 1));
         }
         cout << "\n";
     }
