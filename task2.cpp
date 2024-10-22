@@ -13,14 +13,14 @@ struct InteriorPointResult {
     double optimalValue;
 };
 
-vector<double> matVecMult(const vector<vector<double>>& A, const vector<double>& x) {
+vector<double> matVecMult(const vector<vector<double>>& A, const vector<double>& x, int mmV = 1) {
     int n = A.size();
     int m = x.size();
     vector<double> result(n, 0.0);
 
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < m; ++j) {
-            result[i] += A[i][j] * x[j];
+            result[i] += mmV * A[i][j] * x[j];
         }
     }
 
@@ -136,7 +136,8 @@ vector<vector<double>> projectionMatrix(const vector<vector<double>>& A) {
     return projection;
 }
 
-InteriorPointResult interiorPointMethod(const vector<double>& C, const vector<vector<double>>& A, const vector<double>& b, const vector<double>& initPoint, double alpha, double EPSILON) {
+InteriorPointResult interiorPointMethod(const vector<double>& C, const vector<vector<double>>& A, 
+const vector<double>& b, const vector<double>& initPoint, double alpha, double EPSILON, char maxMin) {
     int n = C.size();
     vector<double> x = initPoint;
     int iteration = 0;
@@ -146,8 +147,9 @@ InteriorPointResult interiorPointMethod(const vector<double>& C, const vector<ve
         for (int i = 0; i < n; ++i) {
             D[i][i] = x[i];
         }
-        vector<double> c_tilde = matVecMult(D, C);
+        vector<double> c_tilde = (maxMin == 'm' ? matVecMult(D, C) : matVecMult(D, C, -1));
         vector<vector<double>> a_tilde = matMatMult(A, D); 
+
         vector<vector<double>> P = projectionMatrix(a_tilde);
         vector<double> c_p = matVecMult(P, c_tilde);
         int idx = -1;
@@ -181,7 +183,11 @@ InteriorPointResult interiorPointMethod(const vector<double>& C, const vector<ve
     for (int i = 0; i < n; ++i) {
         optimalValue += C[i] * x[i];
     }
-
+    if (maxMin == 'n') {
+        for (double xi : x) {
+            xi *= -1;
+        }
+    }
     return {x, optimalValue};
 }
 
@@ -202,6 +208,7 @@ int main() {
     vector<vector<double>> A = {{2, 4, 1, 0}, {1, 3, 0, -1}};
     vector<double> b = {16, 9};
     vector<double> x_initial = {0.5, 3.5, 1, 2};
+    char maxMin = 'm';
     double eps = 0.000001;*/
 
     /*int xSize = 2;
@@ -209,6 +216,7 @@ int main() {
     vector<vector<double>> A = {{1, 1, 1, 0}, {2, 1, 0, 1}};
     vector<double> b = {4, 5};
     vector<double> x_initial = {1, 1, 2, 2};
+    char maxMin = 'm';
     double eps = 0.000001;*/
 
     /*int xSize = 3;
@@ -216,21 +224,24 @@ int main() {
     vector<vector<double>> A = {{1, 2, 3}};
     vector<double> b = {6};
     vector<double> x_initial = {1, 1, 1};
+    char maxMin = 'm';
     double eps = 0.000001;*/
 
     /*int xSize = 3;
     vector<double> C = {-2, 2, -6, 0, 0, 0};
     vector<vector<double>> A = {{2, 1, -2, 1, 0, 0}, {1, 2, 4, 0, 1, 0}, {1, -1, 2, 0, 0, 1}};
     vector<double> b = {24, 23, 10};
-    vector<double> x_initial = {1, 1, 1, 1, 1, 1};
-    double eps = 0.000001;*/
+    vector<double> x_initial = {1, 1, 1, 1, 16, 8};
+    char maxMin = 'n';
+    double eps = 0.00001;*/
 
-    int xSize = 3;
+    /*int xSize = 3;
     vector<double> C = {9, 10, 16, 0, 0, 0};
     vector<vector<double>> A = {{18, 15, 12, 1, 0, 0}, {6, 4, 8, 0, 1, 0}, {5, 3, 3, 0, 0, 1}};
     vector<double> b = {360, 192, 180};
     vector<double> x_initial = {1, 1, 1, 315, 174, 169};
-    double eps = 0.0001;
+    char maxMin = 'm'; //m if maximaize, n if minimize
+    double eps = 0.0001;*/
     double alpha1 = 0.5;
     double alpha2 = 0.9;
 
@@ -239,7 +250,7 @@ int main() {
         return -1;
     }
 
-    InteriorPointResult result1 = interiorPointMethod(C, A, b, x_initial, alpha1, eps);
+    InteriorPointResult result1 = interiorPointMethod(C, A, b, x_initial, alpha1, eps, maxMin);
     if (result1.optimalValue == -numeric_limits<double>::infinity()) {
         cout << "The problem does not have a solution!" << endl;
     } else {
@@ -250,7 +261,7 @@ int main() {
         cout << endl << "Optimal value: " << result1.optimalValue << endl;
     }
 
-    InteriorPointResult result2 = interiorPointMethod(C, A, b, x_initial, alpha2, eps);
+    InteriorPointResult result2 = interiorPointMethod(C, A, b, x_initial, alpha2, eps, maxMin);
     if (result2.optimalValue == -numeric_limits<double>::infinity()) {
         cout << "The problem does not have a solution!" << endl;
     } else {
