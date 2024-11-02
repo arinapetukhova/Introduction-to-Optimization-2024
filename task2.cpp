@@ -201,47 +201,55 @@ bool isFeasible(const vector<vector<double>>& A, const vector<double>& x, const 
     return true;
 }
 
-int main() {
+int main() {    
+    int constraintCount;
+    cout << "Enter the number of constraints: ";
+    cin >> constraintCount;
 
-    /*int xSize = 2;
-    vector<double> C = {1, 1, 0, 0};
-    vector<vector<double>> A = {{2, 4, 1, 0}, {1, 3, 0, -1}};
-    vector<double> b = {16, 9};
-    vector<double> x_initial = {0.5, 3.5, 1, 2};
-    char maxMin = 'm';
-    double eps = 0.000001;*/
+    int xSize;
+    cout << "Enter the number of variables: ";
+    cin >> xSize;
 
-    /*int xSize = 2;
-    vector<double> C = {3, 2, 0, 0};
-    vector<vector<double>> A = {{1, 1, 1, 0}, {2, 1, 0, 1}};
-    vector<double> b = {4, 5};
-    vector<double> x_initial = {1, 1, 2, 2};
-    char maxMin = 'm';
-    double eps = 0.000001;*/
+    vector<vector<double>> A(constraintCount, vector<double>(xSize + constraintCount));
+    cout << "Enter the elements of matrix A (each row as a space-separated line):" << endl;
+    for (int i = 0; i < constraintCount; i++) {
+        for (int j = 0; j < xSize + constraintCount; j++) {
+            if (j < xSize) {
+                cin >> A[i][j];
+            } else if (j == xSize + i) {
+                A[i][j] = 1;
+            } else {
+                A[i][j] = 0;
+            }
+        }
+    }
 
-    /*int xSize = 3;
-    vector<double> C = {2, 5, 7};
-    vector<vector<double>> A = {{1, 2, 3}};
-    vector<double> b = {6};
-    vector<double> x_initial = {1, 1, 1};
-    char maxMin = 'm';
-    double eps = 0.000001;*/
+    vector<double> b(constraintCount);
+    cout << "Enter the elements of vector b (space-separated): ";
+    for (int i = 0; i < constraintCount; i++) {
+        cin >> b[i];
+    }
 
-    /*int xSize = 3;
-    vector<double> C = {-2, 2, -6, 0, 0, 0};
-    vector<vector<double>> A = {{2, 1, -2, 1, 0, 0}, {1, 2, 4, 0, 1, 0}, {1, -1, 2, 0, 0, 1}};
-    vector<double> b = {24, 23, 10};
-    vector<double> x_initial = {1, 1, 1, 1, 16, 8};
-    char maxMin = 'n';
-    double eps = 0.00001;*/
+    vector<double> C(xSize + constraintCount, 0);
+    cout << "Enter the elements of vector C (space-separated): ";
+    for (int i = 0; i < xSize; i++) {
+        cin >> C[i];
+    }
 
-    /*int xSize = 3;
-    vector<double> C = {9, 10, 16, 0, 0, 0};
-    vector<vector<double>> A = {{18, 15, 12, 1, 0, 0}, {6, 4, 8, 0, 1, 0}, {5, 3, 3, 0, 0, 1}};
-    vector<double> b = {360, 192, 180};
-    vector<double> x_initial = {1, 1, 1, 315, 174, 169};
-    char maxMin = 'm'; //m if maximaize, n if minimize
-    double eps = 0.0001;*/
+    vector<double> x_initial(xSize + constraintCount);
+    cout << "Enter the initial values of vector x_initial (space-separated): ";
+    for (int i = 0; i < xSize + constraintCount; i++) {
+        cin >> x_initial[i];
+    }
+
+    char maxMin;
+    cout << "Enter 'm' to maximize or 'n' to minimize: ";
+    cin >> maxMin;
+
+    double eps;
+    cout << "Enter the epsilon value: ";
+    cin >> eps;
+    
     double alpha1 = 0.5;
     double alpha2 = 0.9;
 
@@ -250,26 +258,48 @@ int main() {
         return -1;
     }
 
+    cout << "Solution with alpha = 0.5:" << endl;
     InteriorPointResult result1 = interiorPointMethod(C, A, b, x_initial, alpha1, eps, maxMin);
     if (result1.optimalValue == -numeric_limits<double>::infinity()) {
         cout << "The problem does not have a solution!" << endl;
+    } else if (result1.optimalValue > INT16_MAX) { 
+        cout << "The method is not applicable (unbounded solution)!" << endl;
     } else {
-        cout << "Solution with alpha = 0.5:" << endl;
+        bool f = true;
         for (int i = 0; i < xSize; i++) {
-            cout << result1.x[i] << " ";
+            if (result1.x[i] > INT16_MAX) {
+                cout << "The method is not applicable (unbounded solution)!" << endl;
+                f = false;
+            }
         }
-        cout << endl << "Optimal value: " << result1.optimalValue << endl;
+        if (f) {
+            for (int i = 0; i < xSize; i++) {
+                cout << result1.x[i] << " ";
+            }
+            cout << endl << "Optimal value: " << result1.optimalValue << endl;
+        }
     }
 
+    cout << "Solution with alpha = 0.9:" << endl;
     InteriorPointResult result2 = interiorPointMethod(C, A, b, x_initial, alpha2, eps, maxMin);
     if (result2.optimalValue == -numeric_limits<double>::infinity()) {
         cout << "The problem does not have a solution!" << endl;
+    } else if (result2.optimalValue > INT16_MAX) { 
+        cout << "The method is not applicable (unbounded solution)!" << endl;
     } else {
-        cout << "Solution with alpha = 0.9:" << endl;
+        bool f = true;
         for (int i = 0; i < xSize; i++) {
-            cout << result2.x[i] << " ";
+            if (result2.x[i] > INT16_MAX) {
+                cout << "The method is not applicable (unbounded solution)!" << endl;
+                f = false;
+            }
         }
-        cout << endl << "Optimal value: " << result2.optimalValue << endl;
+        if (f) {
+            for (int i = 0; i < xSize; i++) {
+                cout << result2.x[i] << " ";
+            }
+            cout << endl << "Optimal value: " << result2.optimalValue << endl;
+        }
     }
 
     return 0;
